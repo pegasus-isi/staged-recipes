@@ -1,0 +1,53 @@
+schema_version: 1
+
+context:
+  version: 2.1.post0
+
+package:
+  name: pythonsed
+  version: ${{ version }}
+
+source:
+  url: https://files.pythonhosted.org/packages/source/p/pythonsed/pythonsed-${{ version }}.tar.gz
+  sha256: 63d2dd42406a36d5b305f7539c7ce1a5279abc9a5ec15cb29ca6dbfde13b3518
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . -vv
+  python:
+    entry_points:
+      - pythonsed = PythonSed.sed:main
+
+requirements:
+  host:
+    - python ${{ python_min }}.*
+    - hatchling
+    - pip
+  run:
+    - python >=${{ python_min }}
+
+tests:
+  - python:
+      imports:
+        - PythonSed
+      pip_check: true
+      python_version:
+        - ${{ python_min }}.*
+        - "*"
+  - requirements:
+      run:
+        - pip
+        - python ${{ python_min }}.*
+    script:
+      - pythonsed --help
+
+about:
+  summary: This package delivers a fully GNU sed compatible sed implementation in Python.
+  license: MIT
+  license_file: LICENSE
+  homepage: https://github.com/fschaeck/PythonSed
+
+extra:
+  recipe-maintainers:
+    - baldikacti
