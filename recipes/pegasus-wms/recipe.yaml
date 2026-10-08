@@ -1,0 +1,123 @@
+schema_version: 1
+
+context:
+  version: 6.0.0.dev0
+  python_min: "3.10"
+
+package:
+  name: pegasus-wms
+  version: ${{ version }}
+
+source:
+  url: https://download.pegasus.isi.edu/pegasus/${{ version }}/pegasus_wms-${{ version }}.tar.gz
+  sha256: 606ea868fd11489454521ab41f32cd0fa0fb992b9f942d3fd2a8a3b534f03a8b
+
+build:
+  number: 0
+  skip:
+    - win
+  script: ${{ PYTHON }} -m pip install . -vv
+  python:
+    # No extension modules: the wheel is py3-none-<platform>, the compiled C/C++/Go
+    # tools are standalone executables installed to bin/.
+    version_independent: true
+    entry_points:
+      - pegasus = Pegasus.cli.main:cli
+      - pegasus-status = Pegasus.cli.main:pegasus_status
+      - pegasus-run = Pegasus.cli.main:pegasus_run
+      - pegasus-analyzer = Pegasus.cli.main:pegasus_analyzer
+      - pegasus-statistics = Pegasus.cli.main:pegasus_statistics
+      - pegasus-remove = Pegasus.cli.main:pegasus_remove
+      - pegasus-plan = Pegasus.cli.main:pegasus_plan
+      - pegasus-version = Pegasus.cli.main:pegasus_version
+      - pegasus-rc-client = Pegasus.cli.main:pegasus_rc_client
+      - pegasus-tc-converter = Pegasus.cli.main:pegasus_tc_converter
+      - pegasus-rc-converter = Pegasus.cli.main:pegasus_rc_converter
+      - pegasus-sc-converter = Pegasus.cli.main:pegasus_sc_converter
+      - pegasus-aws-batch = Pegasus.cli.main:pegasus_aws_batch
+      - pegasus-monitord = Pegasus.cli.main:pegasus_monitord
+      - pegasus-dagman = Pegasus.cli.main:pegasus_dagman
+      - pegasus-db-admin = Pegasus.cli.main:pegasus_db_admin
+      - pegasus-exitcode = Pegasus.cli.main:pegasus_exitcode
+      - pegasus-graphviz = Pegasus.cli.main:pegasus_graphviz
+      - pegasus-init = Pegasus.cli.main:pegasus_init
+      - pegasus-metadata = Pegasus.cli.main:pegasus_metadata
+      - pegasus-preflight-check = Pegasus.cli.main:pegasus_preflight_check
+      - pegasus-service = Pegasus.cli.main:pegasus_service
+      - pegasus-submitdir = Pegasus.cli.main:pegasus_submitdir
+      - pegasus-cwl-converter = Pegasus.cli.main:pegasus_cwl_converter
+      - pegasus-em = Pegasus.cli.main:pegasus_em
+      - pegasus-config = Pegasus.cli.main:pegasus_config
+      - pegasus-halt = Pegasus.cli.main:pegasus_halt
+      - pegasus-configure-glite = Pegasus.cli.main:pegasus_configure_glite
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('go-nocgo') }}
+    - cmake >=3.20
+    - ninja
+    # javac/jar for the CMake UseJava module
+    - openjdk
+  host:
+    - python ${{ python_min }}.*
+    - scikit-build-core >=1.0
+    - pip
+  run:
+    - python >=${{ python_min }}
+    - openjdk >=8
+    - pyyaml
+    - pythonsed
+    - rich
+    - click >=8.0
+    - pika
+    - werkzeug <3.1.0
+    - flask >=2.2,<2.3
+    - flask-caching
+    - requests
+    - pamela
+    - sqlalchemy !=2.1.0
+    - pymysql
+
+tests:
+  - python:
+      imports:
+        - Pegasus
+        - Pegasus.api
+      pip_check: true
+  - script:
+      - pegasus --help
+      - pegasus-version
+      - pegasus-plan --help
+      - pegasus-kickstart -V
+      - pegasus-transfer --help
+      - test -x ${PREFIX}/bin/pegasus-cluster
+      - test -x ${PREFIX}/bin/pegasus-keg
+      - test -x ${PREFIX}/bin/pegasus-checkpoint
+      - test -x ${PREFIX}/bin/pegasus-integrity
+      - test -x ${PREFIX}/bin/pegasus-globus-online
+      - test -x ${PREFIX}/bin/pegasus-globus-online-init
+
+about:
+  homepage: https://pegasus.isi.edu
+  summary: Pegasus Workflow Management System
+  description: |
+    Pegasus WMS is a configurable system for mapping and executing scientific
+    workflows over a wide range of computational infrastructures including
+    laptops, campus clusters, supercomputers, grids, and commercial and
+    academic clouds.
+  license: Apache-2.0
+  license_file:
+    - LICENSE
+    # licenses of the third-party jars bundled under Pegasus/data/java
+    - share/pegasus/java/LICENSE.*
+    - share/pegasus/java/COPYING.*
+    - share/pegasus/java/NOTICE.*
+  documentation: https://pegasus.isi.edu/documentation/
+  repository: https://github.com/pegasus-isi/pegasus
+
+extra:
+  recipe-maintainers:
+    - baldikacti
